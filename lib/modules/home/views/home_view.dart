@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/home_controller.dart';
+import '../../../shared/utils/responsive_utils.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
@@ -65,143 +66,205 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildTopContactBar() {
-    return Container(
-      color: Colors.orange[700],
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 40),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.phone, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
-          Text(
-            '+91 9909788802',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = ResponsiveUtils.isMobile(context);
+        
+        return Container(
+          color: Colors.orange[700],
+          padding: EdgeInsets.symmetric(
+            vertical: 8, 
+            horizontal: ResponsiveUtils.getResponsivePadding(context)
           ),
-          const SizedBox(width: 30),
-          Icon(Icons.email, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
-          Text(
-            'yogiproduct@yahoo.in',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+          child: isMobile
+              ? Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.phone, color: Colors.white, size: 14),
+                        const SizedBox(width: 6),
+                        Text(
+                          '+91 9909788802',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.email, color: Colors.white, size: 14),
+                        const SizedBox(width: 6),
+                        Text(
+                          'yogiproduct@yahoo.in',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.phone, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '+91 9909788802',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 30),
+                    Icon(Icons.email, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      'yogiproduct@yahoo.in',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 
   Widget _buildHeader() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-      child: Column(
-        children: [
-          // Logo and Cart Row
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = ResponsiveUtils.isMobile(context);
+        final isTablet = ResponsiveUtils.isTablet(context);
+        
+        return Container(
+          color: Colors.white,
+          padding: EdgeInsets.symmetric(
+            vertical: isMobile ? 12 : 20, 
+            horizontal: ResponsiveUtils.getResponsivePadding(context)
+          ),
+          child: Column(
             children: [
-              // Logo
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange[100],
-                      borderRadius: BorderRadius.circular(8),
+              // Logo and Cart Row
+              isMobile ? 
+                // Mobile: Stack logo and button vertically
+                Column(
+                  children: [
+                    // Logo Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.orange[100],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(
+                            Icons.kitchen,
+                            color: Colors.orange[700],
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Dwarkesh Enterprise',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[700],
+                            ),
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Icon(
-                      Icons.kitchen,
-                      color: Colors.orange[700],
-                      size: 28,
+                    const SizedBox(height: 12),
+                    // Find Location Button
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: Icon(Icons.location_on, size: 14),
+                      label: Text('Find Location', style: TextStyle(fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange[700],
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Dwarkesh Enterprise',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange[700],
+                  ],
+                ) 
+                : 
+                // Desktop/Tablet: Logo and button in row
+                Row(
+                  children: [
+                    // Logo
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(isTablet ? 6 : 8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.kitchen,
+                            color: Colors.orange[700],
+                            size: isTablet ? 24 : 28,
+                          ),
+                        ),
+                        SizedBox(width: isTablet ? 8 : 12),
+                        Flexible(
+                          child: Text(
+                            'Dwarkesh Enterprise',
+                            style: TextStyle(
+                              fontSize: isTablet ? 22 : 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[700],
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-
-              const Spacer(),
-
-              // Find Location Button
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: Icon(Icons.location_on, size: 16),
-                label: Text('Find a Location'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange[700],
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          
+                    const Spacer(),
+          
+                    // Find Location Button
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: Icon(Icons.location_on, size: 16),
+                      label: Text('Find a Location'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange[700],
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+    
+              SizedBox(height: isMobile ? 12 : 20),
             ],
           ),
-
-          const SizedBox(height: 20),
-
-          // Navigation Menu
-          // Row(
-          //   children: [
-          //     _buildNavLink('Home', true),
-          //     _buildNavLink('About Us', false),
-          //     _buildNavLink('Products', false),
-          //     _buildNavLink('Contact', false),
-
-          //     const Spacer(),
-
-          //     // Search Bar
-          //     // Container(
-          //     //   width: 300,
-          //     //   height: 40,
-          //     //   decoration: BoxDecoration(
-          //     //     border: Border.all(color: Colors.grey[300]!),
-          //     //     borderRadius: BorderRadius.circular(20),
-          //     //   ),
-          //     //   child: Row(
-          //     //     children: [
-          //     //       Expanded(
-          //     //         child: TextField(
-          //     //           decoration: InputDecoration(
-          //     //             hintText: 'Search products...',
-          //     //             border: InputBorder.none,
-          //     //             contentPadding: EdgeInsets.symmetric(horizontal: 16),
-          //     //           ),
-          //     //         ),
-          //     //       ),
-          //     //       Container(
-          //     //         width: 40,
-          //     //         height: 40,
-          //     //         decoration: BoxDecoration(
-          //     //           color: Colors.orange[700],
-          //     //           borderRadius: BorderRadius.circular(20),
-          //     //         ),
-          //     //         child: Icon(
-          //     //           Icons.search,
-          //     //           color: Colors.white,
-          //     //           size: 20,
-          //     //         ),
-          //     //       ),
-          //     //     ],
-          //     //   ),
-          //     // ),
-          //   ],
-          // ),
-        ],
-      ),
+        );
+      },
     );
   }
+
 
   Widget _buildNavLink(String title, bool isActive) {
     return Padding(
