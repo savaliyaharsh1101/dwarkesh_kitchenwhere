@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/category_controller.dart';
 import '../../../shared/models/product_model.dart';
+import '../../../shared/utils/responsive_utils.dart';
 
 class CategoryView extends GetView<CategoryController> {
   const CategoryView({Key? key}) : super(key: key);
@@ -27,31 +28,49 @@ class CategoryView extends GetView<CategoryController> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return Row(
-          children: [
-            // Sidebar Filters
-            Container(
-              width: 300,
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                border: Border(
-                  right: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-              child: _buildFilterSidebar(),
-            ),
-            // Main Content
-            Expanded(
-              child: Column(
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (ResponsiveUtils.isMobile(context)) {
+              return Column(
                 children: [
-                  _buildTopBar(),
+                  _buildMobileTopBar(),
                   Expanded(
-                    child: _buildProductGrid(),
+                    child: Container(
+                      width: double.infinity,
+                      child: _buildProductGrid(),
+                    ),
                   ),
                 ],
-              ),
-            ),
-          ],
+              );
+            } else {
+              return Row(
+                children: [
+                  // Sidebar Filters
+                  Container(
+                    width: ResponsiveUtils.isTablet(context) ? 280 : 320,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      border: Border(
+                        right: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                    child: _buildFilterSidebar(),
+                  ),
+                  // Main Content
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildTopBar(),
+                        Expanded(
+                          child: _buildProductGrid(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
         );
       }),
     );
@@ -59,7 +78,7 @@ class CategoryView extends GetView<CategoryController> {
 
   Widget _buildFilterSidebar() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(ResponsiveUtils.getResponsivePadding(Get.context!)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -91,7 +110,11 @@ class CategoryView extends GetView<CategoryController> {
                 const SizedBox(height: 10),
                 Text(
                   category.name,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(Get.context!,
+                      mobile: 16, tablet: 18, desktop: 20),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (category.description.isNotEmpty) ...[
                   const SizedBox(height: 5),
@@ -111,9 +134,13 @@ class CategoryView extends GetView<CategoryController> {
           }),
 
           // Sort Options
-          const Text(
+          Text(
             'Sort By',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(Get.context!,
+                mobile: 14, tablet: 16, desktop: 16),
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 10),
           Obx(() => Column(
@@ -201,7 +228,11 @@ class CategoryView extends GetView<CategoryController> {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: ResponsiveUtils.getResponsiveFontSize(Get.context!,
+              mobile: 14, tablet: 16, desktop: 16),
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -223,7 +254,7 @@ class CategoryView extends GetView<CategoryController> {
 
   Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(ResponsiveUtils.getResponsivePadding(Get.context!)),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -234,7 +265,11 @@ class CategoryView extends GetView<CategoryController> {
         children: [
           Obx(() => Text(
             '${controller.categoryProducts.length} Products',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(Get.context!,
+                mobile: 14, tablet: 16, desktop: 16),
+              fontWeight: FontWeight.w500,
+            ),
           )),
           const Spacer(),
           Obx(() {
@@ -243,11 +278,101 @@ class CategoryView extends GetView<CategoryController> {
               spacing: 8,
               children: controller.selectedFilters.map((filter) {
                 return Chip(
-                  label: Text(filter),
+                  label: Text(filter, style: const TextStyle(fontSize: 12)),
                   onDeleted: () => controller.toggleFilter(filter),
                   deleteIcon: const Icon(Icons.close, size: 16),
                 );
               }).toList(),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileTopBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[300]!),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Obx(() => Text(
+                '${controller.categoryProducts.length} Products',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              )),
+              const Spacer(),
+              IconButton(
+                onPressed: _showMobileFilters,
+                icon: const Icon(Icons.filter_list),
+                tooltip: 'Filters',
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) => controller.updateSortOption(value),
+                itemBuilder: (context) {
+                  return controller.sortOptions.map((option) {
+                    String label = option;
+                    switch (option) {
+                      case 'price_low':
+                        label = 'Price: Low to High';
+                        break;
+                      case 'price_high':
+                        label = 'Price: High to Low';
+                        break;
+                      case 'newest':
+                        label = 'Newest First';
+                        break;
+                      case 'name':
+                        label = 'Name A-Z';
+                        break;
+                    }
+                    return PopupMenuItem(
+                      value: option,
+                      child: Row(
+                        children: [
+                          Text(label),
+                          const Spacer(),
+                          if (controller.selectedSortOption.value == option)
+                            const Icon(Icons.check, color: Colors.orange),
+                        ],
+                      ),
+                    );
+                  }).toList();
+                },
+                child: const Icon(Icons.sort),
+              ),
+            ],
+          ),
+          Obx(() {
+            if (controller.selectedFilters.isEmpty) return const SizedBox();
+            return Column(
+              children: [
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: controller.selectedFilters.map((filter) {
+                      return Chip(
+                        label: Text(filter, style: const TextStyle(fontSize: 11)),
+                        onDeleted: () => controller.toggleFilter(filter),
+                        deleteIcon: const Icon(Icons.close, size: 14),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
             );
           }),
         ],
@@ -278,21 +403,74 @@ class CategoryView extends GetView<CategoryController> {
         );
       }
 
-      return GridView.builder(
-        padding: const EdgeInsets.all(20),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 20,
-          mainAxisSpacing: 20,
-          childAspectRatio: 0.8,
-        ),
-        itemCount: controller.categoryProducts.length,
-        itemBuilder: (context, index) {
-          final product = controller.categoryProducts[index];
-          return _buildProductCard(product);
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final crossAxisCount = ResponsiveUtils.getResponsiveGridCount(context,
+            mobile: 2, tablet: 3, desktop: 4);
+          final spacing = ResponsiveUtils.isMobile(context) ? 12.0 : 20.0;
+          final padding = ResponsiveUtils.getResponsivePadding(context);
+
+          return Padding(
+            padding: EdgeInsets.all(padding),
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                childAspectRatio: ResponsiveUtils.isMobile(context) ? 0.7 : 0.8,
+              ),
+              itemCount: controller.categoryProducts.length,
+              itemBuilder: (context, index) {
+                final product = controller.categoryProducts[index];
+                return _buildProductCard(product);
+              },
+            ),
+          );
         },
       );
     });
+  }
+
+  void _showMobileFilters() {
+    showModalBottomSheet(
+      context: Get.context!,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          color: Colors.white,
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey[300]!),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Filters',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: _buildFilterSidebar(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildProductCard(ProductModel product) {
@@ -347,14 +525,20 @@ class CategoryView extends GetView<CategoryController> {
                   children: [
                     Text(
                       product.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: ResponsiveUtils.isMobile(Get.context!) ? 12 : 14,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       product.brand,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: ResponsiveUtils.isMobile(Get.context!) ? 10 : 12,
+                      ),
                     ),
                     const Spacer(),
                     Row(
@@ -372,9 +556,10 @@ class CategoryView extends GetView<CategoryController> {
                         ],
                         Text(
                           '₹${product.price.toStringAsFixed(0)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.orange,
+                            fontSize: ResponsiveUtils.isMobile(Get.context!) ? 12 : 14,
                           ),
                         ),
                         if (product.discountPercentage > 0) ...[
