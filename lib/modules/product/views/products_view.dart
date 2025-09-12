@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/products_controller.dart';
 import '../../../shared/models/product_model.dart';
+import '../../../shared/utils/responsive_utils.dart';
 
 class ProductsView extends GetView<ProductsController> {
   const ProductsView({Key? key}) : super(key: key);
@@ -50,68 +51,143 @@ class ProductsView extends GetView<ProductsController> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      color: Colors.orange[700],
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-      child: Row(
-        children: [
-          // Back Button
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = ResponsiveUtils.isMobile(context);
+        
+        return Container(
+          color: Colors.orange[700],
+          padding: EdgeInsets.symmetric(
+            vertical: isMobile ? 12 : 20, 
+            horizontal: ResponsiveUtils.getResponsivePadding(context)
           ),
-          const SizedBox(width: 16),
+          child: isMobile
+              ? Column(
+                  children: [
+                    Row(
+                      children: [
+                        // Back Button
+                        IconButton(
+                          onPressed: () => Get.back(),
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                        ),
+                        const SizedBox(width: 8),
+                        
+                        // Logo
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(
+                                  Icons.kitchen,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'All Products',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    // Category Info (if filtered) - Mobile
+                    const SizedBox(height: 8),
+                    Obx(() {
+                      final category = controller.selectedCategory;
+                      if (category != null) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Category: ${category.name}',
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
+                )
+              : Row(
+                  children: [
+                    // Back Button
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
 
-          // Logo
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.kitchen,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'All Products',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+                    // Logo
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.kitchen,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'All Products',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
 
-          const Spacer(),
+                    const Spacer(),
 
-          // Category Info (if filtered)
-          Obx(() {
-            final category = controller.selectedCategory;
-            if (category != null) {
-              return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
+                    // Category Info (if filtered) - Desktop
+                    Obx(() {
+                      final category = controller.selectedCategory;
+                      if (category != null) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Category: ${category.name}',
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
                 ),
-                child: Text(
-                  'Category: ${category.name}',
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -232,31 +308,62 @@ class ProductsView extends GetView<ProductsController> {
   }
 
   Widget _buildResultsHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Obx(() => Text(
-                controller.resultsText,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
-                ),
-              )),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = ResponsiveUtils.isMobile(context);
+        
+        return Container(
+          padding: EdgeInsets.all(ResponsiveUtils.getResponsivePadding(context)),
+          child: isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Obx(() => Text(
+                          controller.resultsText,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                        )),
+                    const SizedBox(height: 8),
+                    // Refresh Button - Mobile
+                    TextButton.icon(
+                      onPressed: controller.refreshProducts,
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Refresh'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.orange[700],
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Obx(() => Text(
+                          controller.resultsText,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                        )),
 
-          // Refresh Button
-          TextButton.icon(
-            onPressed: controller.refreshProducts,
-            icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('Refresh'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.orange[700],
-            ),
-          ),
-        ],
-      ),
+                    // Refresh Button - Desktop
+                    TextButton.icon(
+                      onPressed: controller.refreshProducts,
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Refresh'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.orange[700],
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -275,30 +382,41 @@ class ProductsView extends GetView<ProductsController> {
           }
           return false;
         },
-        child: GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 5,
-            crossAxisSpacing: 20,
-            mainAxisSpacing: 20,
-            childAspectRatio: 0.8,
-          ),
-          itemCount: controller.products.length +
-              (controller.hasMoreProducts.value ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == controller.products.length) {
-              return _buildLoadingCard();
-            }
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = ResponsiveUtils.getResponsiveGridCount(context,
+              mobile: 2, tablet: 3, desktop: 5);
+            final spacing = ResponsiveUtils.isMobile(context) ? 12.0 : 20.0;
+            final aspectRatio = ResponsiveUtils.isMobile(context) ? 0.7 : 0.8;
+            
+            return GridView.builder(
+              padding: EdgeInsets.symmetric(
+                horizontal: ResponsiveUtils.getResponsivePadding(context)
+              ),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                childAspectRatio: aspectRatio,
+              ),
+              itemCount: controller.products.length +
+                  (controller.hasMoreProducts.value ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == controller.products.length) {
+                  return _buildLoadingCard();
+                }
 
-            final product = controller.products[index];
-            return _buildProductCard(product);
+                final product = controller.products[index];
+                return _buildProductCard(product, context);
+              },
+            );
           },
         ),
       );
     });
   }
 
-  Widget _buildProductCard(ProductModel product) {
+  Widget _buildProductCard(ProductModel product, BuildContext context) {
     // Null safety checks
     final originalPrice = product.originalPrice;
     final currentPrice = product.price;
@@ -484,7 +602,7 @@ class ProductsView extends GetView<ProductsController> {
                     Text(
                       brand.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: ResponsiveUtils.isMobile(context) ? 9 : 10,
                         fontWeight: FontWeight.w600,
                         color: Colors.grey[500],
                         letterSpacing: 0.5,
@@ -497,7 +615,7 @@ class ProductsView extends GetView<ProductsController> {
                   Text(
                     product.name,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: ResponsiveUtils.isMobile(context) ? 12 : 13,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[800],
                       height: 1.2,
@@ -524,7 +642,7 @@ class ProductsView extends GetView<ProductsController> {
                       Text(
                         '(${product.rating.toStringAsFixed(1)})',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: ResponsiveUtils.isMobile(context) ? 9 : 10,
                           color: Colors.grey[500],
                         ),
                       ),
@@ -539,7 +657,7 @@ class ProductsView extends GetView<ProductsController> {
                       Text(
                         '₹${currentPrice.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: ResponsiveUtils.isMobile(context) ? 14 : 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.orange[700],
                         ),
@@ -645,52 +763,100 @@ class ProductsView extends GetView<ProductsController> {
     return Obx(() {
       if (controller.products.isEmpty) return const SizedBox.shrink();
 
-      return Container(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Page ${controller.currentPage.value}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(width: 20),
-            if (controller.hasMoreProducts.value)
-              ElevatedButton(
-                onPressed: controller.isLoading.value
-                    ? null
-                    : controller.loadMoreProducts,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange[700],
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                ),
-                child: controller.isLoading.value
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = ResponsiveUtils.isMobile(context);
+          
+          return Container(
+            padding: EdgeInsets.all(ResponsiveUtils.getResponsivePadding(context)),
+            child: isMobile
+                ? Column(
+                    children: [
+                      Text(
+                        'Page ${controller.currentPage.value}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
                         ),
-                      )
-                    : const Text('Load More'),
-              )
-            else
-              Text(
-                'All products loaded',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-          ],
-        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (controller.hasMoreProducts.value)
+                        ElevatedButton(
+                          onPressed: controller.isLoading.value
+                              ? null
+                              : controller.loadMoreProducts,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                          child: controller.isLoading.value
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Load More'),
+                        )
+                      else
+                        Text(
+                          'All products loaded',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Page ${controller.currentPage.value}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      if (controller.hasMoreProducts.value)
+                        ElevatedButton(
+                          onPressed: controller.isLoading.value
+                              ? null
+                              : controller.loadMoreProducts,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          ),
+                          child: controller.isLoading.value
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Load More'),
+                        )
+                      else
+                        Text(
+                          'All products loaded',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                    ],
+                  ),
+          );
+        },
       );
     });
   }

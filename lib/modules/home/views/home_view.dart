@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/home_controller.dart';
 import '../../../shared/utils/responsive_utils.dart';
+import '../../../controllers/location_controller.dart';
+import '../../../shared/widgets/logo_widget.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
@@ -158,15 +160,44 @@ class HomeView extends GetView<HomeController> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          padding: EdgeInsets.all(6),
+                          width: 32,
+                          height: 32,
                           decoration: BoxDecoration(
-                            color: Colors.orange[100],
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.3),
+                                spreadRadius: 1,
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                          child: Icon(
-                            Icons.kitchen,
-                            color: Colors.orange[700],
-                            size: 20,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'assets/images/logo.jpeg',
+                              width: 32,
+                              height: 32,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 32,
+                                  height: 32,
+                                  color: Colors.orange[700],
+                                  child: Center(
+                                    child: Text(
+                                      'DE',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -186,15 +217,36 @@ class HomeView extends GetView<HomeController> {
                     ),
                     const SizedBox(height: 12),
                     // Find Location Button
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: Icon(Icons.location_on, size: 14),
-                      label: Text('Find Location', style: TextStyle(fontSize: 12)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange[700],
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final LocationController locationController = Get.put(LocationController());
+                        return Obx(() => ElevatedButton.icon(
+                          onPressed: locationController.isLoading.value
+                              ? null
+                              : () {
+                                  locationController.showLocationOptions();
+                                },
+                          icon: locationController.isLoading.value
+                              ? SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : Icon(Icons.location_on, size: 14),
+                          label: Text(
+                            locationController.isLoading.value ? 'Opening...' : 'Find Location',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange[700],
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          ),
+                        ));
+                      },
                     ),
                   ],
                 ) 
@@ -203,47 +255,62 @@ class HomeView extends GetView<HomeController> {
                 Row(
                   children: [
                     // Logo
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(isTablet ? 6 : 8),
-                          decoration: BoxDecoration(
-                            color: Colors.orange[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.kitchen,
+                    Expanded(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          LogoWidget(
+                            size: isTablet ? 36 : 42,
                             color: Colors.orange[700],
-                            size: isTablet ? 24 : 28,
                           ),
-                        ),
-                        SizedBox(width: isTablet ? 8 : 12),
-                        Flexible(
-                          child: Text(
-                            'Dwarkesh Enterprise',
-                            style: TextStyle(
-                              fontSize: isTablet ? 22 : 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange[700],
+                          SizedBox(width: isTablet ? 8 : 12),
+                          Flexible(
+                            child: Text(
+                              'Dwarkesh Enterprise',
+                              style: TextStyle(
+                                fontSize: isTablet ? 22 : 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange[700],
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
           
                     const Spacer(),
           
                     // Find Location Button
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: Icon(Icons.location_on, size: 16),
-                      label: Text('Find a Location'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange[700],
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final LocationController locationController = Get.put(LocationController());
+                        return Obx(() => ElevatedButton.icon(
+                          onPressed: locationController.isLoading.value
+                              ? null
+                              : () {
+                                  locationController.showLocationOptions();
+                                },
+                          icon: locationController.isLoading.value
+                              ? SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : Icon(Icons.location_on, size: 16),
+                          label: Text(
+                            locationController.isLoading.value ? 'Opening Maps...' : 'Find a Location',
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange[700],
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                        ));
+                      },
                     ),
                   ],
                 ),
@@ -874,10 +941,9 @@ class HomeView extends GetView<HomeController> {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.kitchen,
+                        LogoWidget(
+                          size: 40,
                           color: Colors.orange[700],
-                          size: 32,
                         ),
                         const SizedBox(width: 12),
                         Flexible(
@@ -1043,12 +1109,34 @@ class HomeView extends GetView<HomeController> {
                       ),
                     ),
                     const SizedBox(height: 15),
-                    Text(
-                      'Mon - Sat 09 am - 08 pm',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[400],
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mon - Tue: 09 am - 08 pm',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Wednesday: Closed',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Thu - Sun: 09 am - 08 pm',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

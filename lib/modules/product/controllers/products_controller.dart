@@ -45,16 +45,15 @@ class ProductsController extends GetxController {
   }
 
   Future<void> loadInitialData() async {
-    isLoading.value = true;
+    print('loadInitialData called');
     try {
       await Future.wait([
         loadCategories(),
         loadProducts(refresh: true),
       ]);
     } catch (e) {
+      print('Error in loadInitialData: $e');
       Get.snackbar('Error', 'Failed to load data: $e');
-    } finally {
-      isLoading.value = false;
     }
   }
 
@@ -85,15 +84,29 @@ class ProductsController extends GetxController {
   }
 
   Future<void> loadProducts({bool refresh = false}) async {
+    // Prevent duplicate calls when already loading
+    if (isLoading.value && !refresh) {
+      print('Already loading products, skipping duplicate call');
+      return;
+    }
+
+    print('loadProducts called with refresh: $refresh');
+    print('Current products count before: ${products.length}');
+
     if (refresh) {
       currentPage.value = 1;
       lastDocument = null;
       products.clear();
       hasMoreProducts.value = true;
+      print('Cleared products list for refresh');
     }
 
-    if (!hasMoreProducts.value && !refresh) return;
+    if (!hasMoreProducts.value && !refresh) {
+      print('No more products available, returning');
+      return;
+    }
 
+    isLoading.value = true;
     try {
       // Start with basic products query
       Query query = _firestore.collection('products');
@@ -191,7 +204,11 @@ class ProductsController extends GetxController {
       if (refresh) {
         products.value = newProducts;
       } else {
-        products.addAll(newProducts);
+        // Prevent duplicates by checking if product already exists
+        final existingIds = products.map((p) => p.id).toSet();
+        final uniqueNewProducts = newProducts.where((p) => !existingIds.contains(p.id)).toList();
+        print('Adding ${uniqueNewProducts.length} unique products (${newProducts.length - uniqueNewProducts.length} duplicates filtered out)');
+        products.addAll(uniqueNewProducts);
       }
 
       // Update pagination state
@@ -205,9 +222,12 @@ class ProductsController extends GetxController {
       // Update total count
       totalProducts.value = products.length; // Simple count for now
       
+      print('Products loaded successfully, final count: ${products.length}');
     } catch (e) {
       print('Error loading products: $e');
       Get.snackbar('Error', 'Failed to load products. Please try again.');
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -236,6 +256,7 @@ class ProductsController extends GetxController {
   }
 
   void onSortChanged(String sortValue) {
+    print('onSortChanged called with: $sortValue');
     selectedSortBy.value = sortValue;
     loadProducts(refresh: true);
   }
@@ -256,11 +277,13 @@ class ProductsController extends GetxController {
   }
 
   void onSearchChanged(String query) {
+    print('onSearchChanged called with: $query');
     searchQuery.value = query;
     loadProducts(refresh: true);
   }
 
   void clearFilters() {
+    print('clearFilters called');
     selectedCategoryId.value = '';
     searchQuery.value = '';
     selectedSortBy.value = 'name';
@@ -268,11 +291,16 @@ class ProductsController extends GetxController {
   }
 
   void loadMoreProducts() {
-    if (!hasMoreProducts.value || isLoading.value) return;
+    print('loadMoreProducts called');
+    if (!hasMoreProducts.value || isLoading.value) {
+      print('loadMoreProducts: No more products or already loading');
+      return;
+    }
     loadProducts();
   }
 
   void refreshProducts() {
+    print('refreshProducts called');
     loadProducts(refresh: true);
   }
 
@@ -281,10 +309,14 @@ class ProductsController extends GetxController {
   String get resultsText {
     if (products.isEmpty) return 'No products found';
     
-    final start = ((currentPage.value - 1) * productsPerPage) + 1;
-    final end = (start + products.length - 1).clamp(start, totalProducts.value);
+    final start = 1; // Always start from 1 for current loaded products
+    final end = products.length;
     
-    return 'Showing $start-$end of ${totalProducts.value} products';
+    if (totalProducts.value > 0) {
+      return 'Showing $start-$end of ${totalProducts.value} products';
+    } else {
+      return 'Showing ${products.length} products';
+    }
   }
 
   CategoryModel? get selectedCategory {
