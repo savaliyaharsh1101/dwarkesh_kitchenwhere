@@ -152,7 +152,7 @@ class HomeView extends GetView<HomeController> {
             children: [
               // Logo and Cart Row
               isMobile ? 
-                // Mobile: Stack logo and button vertically
+                // Mobile: Stack logo and buttons vertically
                 Column(
                   children: [
                     // Logo Row
@@ -216,42 +216,22 @@ class HomeView extends GetView<HomeController> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    // Find Location Button
-                    Builder(
-                      builder: (context) {
-                        final LocationController locationController = Get.put(LocationController());
-                        return Obx(() => ElevatedButton.icon(
-                          onPressed: locationController.isLoading.value
-                              ? null
-                              : () {
-                                  locationController.showLocationOptions();
-                                },
-                          icon: locationController.isLoading.value
-                              ? SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                )
-                              : Icon(Icons.location_on, size: 14),
-                          label: Text(
-                            locationController.isLoading.value ? 'Opening...' : 'Find Location',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange[700],
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          ),
-                        ));
-                      },
+                    // Search and Location Button Row
+                    Row(
+                      children: [
+                        // Search Bar
+                        Expanded(
+                          child: _buildSearchField(),
+                        ),
+                        const SizedBox(width: 8),
+                        // Find Location Button
+                        _buildLocationButton(isMobile: true),
+                      ],
                     ),
                   ],
                 ) 
                 : 
-                // Desktop/Tablet: Logo and button in row
+                // Desktop/Tablet: Logo and buttons in row
                 Row(
                   children: [
                     // Logo
@@ -279,39 +259,18 @@ class HomeView extends GetView<HomeController> {
                       ),
                     ),
           
-                    const Spacer(),
+                    const SizedBox(width: 20),
+          
+                    // Search Bar
+                    Container(
+                      width: isTablet ? 250 : 350,
+                      child: _buildSearchField(),
+                    ),
+          
+                    const SizedBox(width: 16),
           
                     // Find Location Button
-                    Builder(
-                      builder: (context) {
-                        final LocationController locationController = Get.put(LocationController());
-                        return Obx(() => ElevatedButton.icon(
-                          onPressed: locationController.isLoading.value
-                              ? null
-                              : () {
-                                  locationController.showLocationOptions();
-                                },
-                          icon: locationController.isLoading.value
-                              ? SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                )
-                              : Icon(Icons.location_on, size: 16),
-                          label: Text(
-                            locationController.isLoading.value ? 'Opening Maps...' : 'Find a Location',
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange[700],
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          ),
-                        ));
-                      },
-                    ),
+                    _buildLocationButton(isMobile: false),
                   ],
                 ),
     
@@ -320,6 +279,127 @@ class HomeView extends GetView<HomeController> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Builder(
+      builder: (context) {
+        return InkWell(
+          onTap: () => _showSearchDialog(context),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!, width: 1),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search, color: Colors.grey[600], size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Search products...',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSearchDialog(BuildContext context) {
+    final searchCtrl = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(20),
+          constraints: BoxConstraints(
+            maxWidth: 500,
+            maxHeight: 200,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Search Products',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange[700],
+                ),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: searchCtrl,
+                autofocus: true,
+                onSubmitted: (value) {
+                  Navigator.of(dialogContext).pop();
+                  if (value.trim().isNotEmpty) {
+                    Get.toNamed('/product-search', arguments: {'query': value.trim()});
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: 'Enter product name, brand, color, etc.',
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.orange[700]!, width: 2),
+                  ),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text('Cancel'),
+                  ),
+                  SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      if (searchCtrl.text.trim().isNotEmpty) {
+                        Get.toNamed('/product-search', 
+                          arguments: {'query': searchCtrl.text.trim()});
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange[700],
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text('Search'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -1348,6 +1428,45 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLocationButton({required bool isMobile}) {
+    return GetBuilder<LocationController>(
+      init: LocationController(),
+      builder: (locationController) {
+        return Obx(() => ElevatedButton.icon(
+          onPressed: locationController.isLoading.value
+              ? null
+              : () {
+                  locationController.showLocationOptions();
+                },
+          icon: locationController.isLoading.value
+              ? SizedBox(
+                  width: isMobile ? 12 : 14,
+                  height: isMobile ? 12 : 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Icon(Icons.location_on, size: isMobile ? 14 : 16),
+          label: Text(
+            locationController.isLoading.value 
+                ? (isMobile ? 'Opening...' : 'Opening Maps...') 
+                : (isMobile ? 'Location' : 'Find a Location'),
+            style: TextStyle(fontSize: isMobile ? 12 : 14),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange[700],
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 16, 
+              vertical: isMobile ? 6 : 8
+            ),
+          ),
+        ));
+      },
     );
   }
 

@@ -10,8 +10,10 @@ import 'modules/category/views/category_view.dart';
 import 'modules/category/bindings/category_binding.dart';
 import 'modules/product/views/product_detail_view.dart';
 import 'modules/product/views/products_view.dart';
+import 'modules/product/views/product_search_view.dart';
 import 'modules/product/bindings/product_binding.dart';
 import 'modules/product/bindings/products_binding.dart';
+import 'modules/product/bindings/product_search_binding.dart';
 import 'modules/admin/views/admin_inquiry_view.dart';
 import 'modules/admin/bindings/admin_inquiry_binding.dart';
 
@@ -66,6 +68,11 @@ class DwarkeshEnterpriseApp extends StatelessWidget {
           name: '/products',
           page: () => ProductsView(),
           binding: ProductsBinding(),
+        ),
+        GetPage(
+          name: '/product-search',
+          page: () => ProductSearchView(),
+          binding: ProductSearchBinding(),
         ),
         GetPage(
           name: '/admin/inquiries',

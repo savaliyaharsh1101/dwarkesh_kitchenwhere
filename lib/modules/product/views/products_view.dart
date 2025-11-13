@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/products_controller.dart';
@@ -14,13 +14,7 @@ class ProductsView extends GetView<ProductsController> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Header Section
-          _buildHeader(),
-
-          // Filters and Search Section
-          // _buildFiltersSection(),
-
-          // Main Content
+          _buildHeader(context),
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value && controller.products.isEmpty) {
@@ -28,18 +22,10 @@ class ProductsView extends GetView<ProductsController> {
                   child: CircularProgressIndicator(color: Colors.orange),
                 );
               }
-
               return Column(
                 children: [
-                  // Results Header
-                  _buildResultsHeader(),
-
-                  // Products Grid
-                  Expanded(
-                    child: _buildProductsGrid(),
-                  ),
-
-                  // Pagination
+                  _buildResultsHeader(context),
+                  Expanded(child: _buildProductsGrid()),
                   _buildPagination(),
                 ],
               );
@@ -50,320 +36,303 @@ class ProductsView extends GetView<ProductsController> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final isMobile = ResponsiveUtils.isMobile(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = ResponsiveUtils.isMobile(context);
-        
         return Container(
           color: Colors.orange[700],
           padding: EdgeInsets.symmetric(
-            vertical: isMobile ? 12 : 20, 
-            horizontal: ResponsiveUtils.getResponsivePadding(context)
+            vertical: isMobile ? 12 : 20,
+            horizontal: ResponsiveUtils.getResponsivePadding(context),
           ),
           child: isMobile
-              ? Column(
-                  children: [
-                    Row(
-                      children: [
-                        // Back Button
-                        IconButton(
-                          onPressed: () => Get.back(),
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                        ),
-                        const SizedBox(width: 8),
-                        
-                        // Logo
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Icon(
-                                  Icons.kitchen,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  'All Products',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    // Category Info (if filtered) - Mobile
-                    const SizedBox(height: 8),
-                    Obx(() {
-                      final category = controller.selectedCategory;
-                      if (category != null) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Category: ${category.name}',
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ],
-                )
-              : Row(
-                  children: [
-                    // Back Button
-                    IconButton(
-                      onPressed: () => Get.back(),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Logo
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.kitchen,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'All Products',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const Spacer(),
-
-                    // Category Info (if filtered) - Desktop
-                    Obx(() {
-                      final category = controller.selectedCategory;
-                      if (category != null) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Category: ${category.name}',
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ],
-                ),
+              ? _buildMobileHeader(context)
+              : _buildDesktopHeader(context),
         );
       },
     );
   }
 
-  Widget _buildFiltersSection() {
-    return Container(
-      color: Colors.grey[100],
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          // Search Bar
-          Expanded(
-            flex: 3,
-            child: Container(
-              height: 45,
+  Widget _buildMobileHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              onPressed: () => Get.back(),
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[300]!),
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6),
               ),
-              child: TextField(
-                onChanged: (value) => controller.onSearchChanged(value),
-                decoration: const InputDecoration(
-                  hintText: 'Search products...',
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: const Icon(Icons.kitchen, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'All Products',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _buildSearchButton(context, isMobile: true),
+        const SizedBox(height: 8),
+        Obx(() {
+          final cat = controller.selectedCategory;
+          if (cat == null) return const SizedBox.shrink();
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'Category: ${cat.name}',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildDesktopHeader(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 16),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.kitchen, color: Colors.white, size: 24),
+        ),
+        const SizedBox(width: 12),
+        const Text(
+          'All Products',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 32),
+        Expanded(child: _buildSearchButton(context, isMobile: false)),
+        const SizedBox(width: 20),
+        Obx(() {
+          final cat = controller.selectedCategory;
+          if (cat == null) return const SizedBox.shrink();
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'Category: ${cat.name}',
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildSearchButton(BuildContext context, {required bool isMobile}) {
+    return isMobile
+        ? SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: ElevatedButton.icon(
+              onPressed: () => _openSearchDialog(context),
+              icon: const Icon(Icons.search, size: 18),
+              label: const Text('Search'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.orange[700],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-          ),
-
-          const SizedBox(width: 20),
-
-          // Category Filter
-          Expanded(
-            flex: 2,
-            child: Obx(() {
-              print(
-                  'Building dropdown - selectedCategoryId: "${controller.selectedCategoryId.value}"');
-              print('Categories available: ${controller.categories.length}');
-
-              return DropdownButtonFormField<String>(
-                value: controller.selectedCategoryId.value.isEmpty
-                    ? ''
-                    : controller.selectedCategoryId.value,
-                decoration: InputDecoration(
-                  labelText: 'Category',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                items: [
-                  const DropdownMenuItem<String>(
-                    value: '',
-                    child: Text('All Categories'),
-                  ),
-                  ...controller.categories.map((category) {
-                    print(
-                        'Adding dropdown item: ${category.name} (${category.id})');
-                    return DropdownMenuItem<String>(
-                      value: category.id,
-                      child: Text(category.name),
-                    );
-                  }),
-                ],
-                onChanged: (value) {
-                  print('Dropdown selection changed to: "$value"');
-                  controller.onCategoryChanged(value ?? '');
-                },
-              );
-            }),
-          ),
-
-          const SizedBox(width: 20),
-
-          // Sort Dropdown
-          Expanded(
-            flex: 2,
-            child: Obx(() => DropdownButtonFormField<String>(
-                  value: controller.selectedSortBy.value,
-                  decoration: InputDecoration(
-                    labelText: 'Sort by',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  items: controller.sortOptions
-                      .map((option) => DropdownMenuItem<String>(
-                            value: option['value']!,
-                            child: Text(option['label']!),
-                          ))
-                      .toList(),
-                  onChanged: (value) => controller.onSortChanged(value!),
-                )),
-          ),
-
-          const SizedBox(width: 20),
-
-          // Clear Filters Button
-          ElevatedButton.icon(
-            onPressed: controller.clearFilters,
-            icon: const Icon(Icons.clear, size: 16),
-            label: const Text('Clear'),
+          )
+        : ElevatedButton.icon(
+            onPressed: () => _openSearchDialog(context),
+            icon: const Icon(Icons.search),
+            label: const Text('Search Products'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[600],
-              foregroundColor: Colors.white,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.orange[700],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-          ),
-        ],
-      ),
-    );
+          );
   }
 
-  Widget _buildResultsHeader() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = ResponsiveUtils.isMobile(context);
-        
-        return Container(
-          padding: EdgeInsets.all(ResponsiveUtils.getResponsivePadding(context)),
-          child: isMobile
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Obx(() => Text(
-                          controller.resultsText,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
-                          ),
-                        )),
-                    const SizedBox(height: 8),
-                    // Refresh Button - Mobile
-                    TextButton.icon(
-                      onPressed: controller.refreshProducts,
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('Refresh'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.orange[700],
-                        padding: EdgeInsets.zero,
-                      ),
+  void _openSearchDialog(BuildContext context) {
+    final TextEditingController searchController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Search Products',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[700],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: searchController,
+                  autofocus: true,
+                  onSubmitted: (value) {
+                    Navigator.of(dialogContext).pop();
+                    if (value.trim().isNotEmpty) {
+                      Get.toNamed('/product-search',
+                          arguments: {'query': value.trim()});
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Enter product name, brand, color, etc.',
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
                     ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          BorderSide(color: Colors.grey[300]!, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          BorderSide(color: Colors.orange[700]!, width: 2),
+                    ),
+                    prefixIcon:
+                        Icon(Icons.search, color: Colors.grey[600]),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Obx(() => Text(
-                          controller.resultsText,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
-                          ),
-                        )),
-
-                    // Refresh Button - Desktop
-                    TextButton.icon(
-                      onPressed: controller.refreshProducts,
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('Refresh'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.orange[700],
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        final query = searchController.text.trim();
+                        if (query.isNotEmpty) {
+                          Get.toNamed('/product-search',
+                              arguments: {'query': query});
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange[700],
+                        foregroundColor: Colors.white,
                       ),
+                      child: const Text('Search'),
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildResultsHeader(BuildContext context) {
+    final isMobile = ResponsiveUtils.isMobile(context);
+    return Container(
+      padding: EdgeInsets.all(ResponsiveUtils.getResponsivePadding(context)),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Obx(() => Text(
+                      controller.resultsText,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                    )),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: controller.refreshProducts,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Refresh'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.orange[700],
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Obx(() => Text(
+                      controller.resultsText,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                    )),
+                TextButton.icon(
+                  onPressed: controller.refreshProducts,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Refresh'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.orange[700],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -372,10 +341,10 @@ class ProductsView extends GetView<ProductsController> {
       if (controller.products.isEmpty) {
         return _buildEmptyState();
       }
-
       return NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
-          if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent &&
+          if (scrollInfo.metrics.pixels ==
+                  scrollInfo.metrics.maxScrollExtent &&
               controller.hasMoreProducts.value &&
               !controller.isLoading.value) {
             controller.loadMoreProducts();
@@ -384,14 +353,20 @@ class ProductsView extends GetView<ProductsController> {
         },
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final crossAxisCount = ResponsiveUtils.getResponsiveGridCount(context,
-              mobile: 2, tablet: 3, desktop: 5);
-            final spacing = ResponsiveUtils.isMobile(context) ? 12.0 : 20.0;
-            final aspectRatio = ResponsiveUtils.isMobile(context) ? 0.7 : 0.8;
-            
+            final crossAxisCount =
+                ResponsiveUtils.getResponsiveGridCount(
+              context,
+              mobile: 2,
+              tablet: 3,
+              desktop: 5,
+            );
+            final spacing =
+                ResponsiveUtils.isMobile(context) ? 12.0 : 20.0;
+            final aspectRatio =
+                ResponsiveUtils.isMobile(context) ? 0.7 : 0.8;
             return GridView.builder(
               padding: EdgeInsets.symmetric(
-                horizontal: ResponsiveUtils.getResponsivePadding(context)
+                horizontal: ResponsiveUtils.getResponsivePadding(context),
               ),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
@@ -405,9 +380,7 @@ class ProductsView extends GetView<ProductsController> {
                 if (index == controller.products.length) {
                   return _buildLoadingCard();
                 }
-
-                final product = controller.products[index];
-                return _buildProductCard(product, context);
+                return _buildProductCard(controller.products[index], context);
               },
             );
           },
@@ -417,21 +390,17 @@ class ProductsView extends GetView<ProductsController> {
   }
 
   Widget _buildProductCard(ProductModel product, BuildContext context) {
-    // Null safety checks
-    final originalPrice = product.originalPrice;
-    final currentPrice = product.price;
-    final hasDiscount = originalPrice != null && originalPrice > currentPrice;
+    final hasDiscount = product.originalPrice != null &&
+        product.originalPrice! > product.price;
     final discountPercent = hasDiscount
-        ? ((originalPrice - currentPrice) / originalPrice * 100).round()
+        ? (((product.originalPrice! - product.price) /
+                product.originalPrice!) *
+            100)
+            .round()
         : 0;
-    final stockQuantity = product.stockQuantity;
-    final brand = product.brand;
-    final material = product.material;
-    final imageUrl = product.imageUrl;
-
     return InkWell(
-      onTap: () =>
-          Get.toNamed('/product-detail', arguments: {'productId': product.id}),
+      onTap: () => Get.toNamed('/product-detail',
+          arguments: {'productId': product.id}),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -447,7 +416,6 @@ class ProductsView extends GetView<ProductsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image with badges
             Expanded(
               flex: 3,
               child: Stack(
@@ -466,15 +434,15 @@ class ProductsView extends GetView<ProductsController> {
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
                       ),
-                      child: imageUrl.isNotEmpty
+                      child: product.imageUrl.isNotEmpty
                           ? CachedNetworkImage(
-                              imageUrl: imageUrl,
+                              imageUrl: product.imageUrl,
                               fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
                               placeholder: (context, url) => Center(
                                 child: CircularProgressIndicator(
-                                    color: Colors.orange[700], strokeWidth: 2),
+                                  color: Colors.orange[700],
+                                  strokeWidth: 2,
+                                ),
                               ),
                               errorWidget: (context, url, error) => Center(
                                 child: Icon(
@@ -493,8 +461,6 @@ class ProductsView extends GetView<ProductsController> {
                             ),
                     ),
                   ),
-
-                  // Discount Badge
                   if (hasDiscount)
                     Positioned(
                       top: 8,
@@ -516,9 +482,7 @@ class ProductsView extends GetView<ProductsController> {
                         ),
                       ),
                     ),
-
-                  // Stock Status Badge
-                  if (stockQuantity <= 5 && stockQuantity > 0)
+                  if (product.stockQuantity <= 5 && product.stockQuantity > 0)
                     Positioned(
                       top: 8,
                       right: 8,
@@ -530,7 +494,7 @@ class ProductsView extends GetView<ProductsController> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Only $stockQuantity',
+                          'Only ${product.stockQuantity}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 9,
@@ -539,7 +503,7 @@ class ProductsView extends GetView<ProductsController> {
                         ),
                       ),
                     )
-                  else if (stockQuantity <= 0)
+                  else if (product.stockQuantity <= 0)
                     Positioned(
                       top: 8,
                       right: 8,
@@ -560,8 +524,6 @@ class ProductsView extends GetView<ProductsController> {
                         ),
                       ),
                     ),
-
-                  // Heart/Favorite Icon
                   Positioned(
                     bottom: 8,
                     right: 8,
@@ -571,13 +533,6 @@ class ProductsView extends GetView<ProductsController> {
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.9),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            spreadRadius: 1,
-                          ),
-                        ],
                       ),
                       child: Icon(
                         Icons.favorite_border,
@@ -589,115 +544,133 @@ class ProductsView extends GetView<ProductsController> {
                 ],
               ),
             ),
-
-            // Product Details
-            Container(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Brand name
-                  if (brand.isNotEmpty)
-                    Text(
-                      brand.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: ResponsiveUtils.isMobile(context) ? 9 : 10,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[500],
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-
-                  if (brand.isNotEmpty) const SizedBox(height: 4),
-
-                  // Product name
-                  Text(
-                    product.name,
-                    style: TextStyle(
-                      fontSize: ResponsiveUtils.isMobile(context) ? 12 : 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                      height: 1.2,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // Rating (placeholder for now)
-                  Row(
-                    children: [
-                      Row(
-                        children: List.generate(5, (index) {
-                          return Icon(
-                            index < 4 ? Icons.star : Icons.star_border,
-                            size: 12,
-                            color: Colors.amber[600],
-                          );
-                        }),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${product.rating.toStringAsFixed(1)})',
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    if (product.brand.isNotEmpty)
+                      Flexible(
+                        child: Text(
+                        product.brand.toUpperCase(),
                         style: TextStyle(
-                          fontSize: ResponsiveUtils.isMobile(context) ? 9 : 10,
+                          fontSize:
+                                ResponsiveUtils.isMobile(context) ? 9 : 10,
+                          fontWeight: FontWeight.w600,
                           color: Colors.grey[500],
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Price section
-                  Row(
-                    children: [
-                      Text(
-                        '₹${currentPrice.toStringAsFixed(0)}',
+                      ),
+                    if (product.brand.isNotEmpty) const SizedBox(height: 4),
+                    Flexible(
+                      child: Text(
+                        product.name,
                         style: TextStyle(
-                          fontSize: ResponsiveUtils.isMobile(context) ? 14 : 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange[700],
+                          fontSize:
+                              ResponsiveUtils.isMobile(context) ? 12 : 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                          height: 1.2,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (hasDiscount) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          '₹${originalPrice!.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                            decoration: TextDecoration.lineThrough,
+                    ),
+                    const SizedBox(height: 6),
+                    Flexible(
+                      child: Row(
+                      children: [
+                          Flexible(
+                            child: Row(
+                          children: List.generate(5, (i) {
+                            return Icon(
+                              i < 4 ? Icons.star : Icons.star_border,
+                                  size: 12,
+                              color: Colors.amber[600],
+                            );
+                          }),
+                        ),
+                          ),
+                          const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '(${product.rating.toStringAsFixed(1)})',
+                            style: TextStyle(
+                              fontSize:
+                                  ResponsiveUtils.isMobile(context)
+                                        ? 9
+                                        : 10,
+                              color: Colors.grey[500],
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // Material/Category info
-                  if (material.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.blue.withOpacity(0.2)),
-                      ),
-                      child: Text(
-                        material.toUpperCase(),
+                    ),
+                    ),
+                    const SizedBox(height: 8),
+                    Flexible(
+                      child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '₹${product.price.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize:
+                                  ResponsiveUtils.isMobile(context)
+                                        ? 14
+                                        : 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[700],
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (hasDiscount) ...[
+                            const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '₹${product.originalPrice!.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                color: Colors.grey[500],
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    ),
+                    const SizedBox(height: 6),
+                    if (product.material.isNotEmpty)
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                        product.material.toUpperCase(),
                         style: const TextStyle(
-                          fontSize: 9,
+                              fontSize: 9,
                           fontWeight: FontWeight.w600,
                           color: Colors.blue,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -723,11 +696,7 @@ class ProductsView extends GetView<ProductsController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'No products found',
@@ -740,10 +709,7 @@ class ProductsView extends GetView<ProductsController> {
           const SizedBox(height: 8),
           Text(
             'Try adjusting your search or filters',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -762,22 +728,19 @@ class ProductsView extends GetView<ProductsController> {
   Widget _buildPagination() {
     return Obx(() {
       if (controller.products.isEmpty) return const SizedBox.shrink();
-
       return LayoutBuilder(
         builder: (context, constraints) {
           final isMobile = ResponsiveUtils.isMobile(context);
-          
           return Container(
-            padding: EdgeInsets.all(ResponsiveUtils.getResponsivePadding(context)),
+            padding: EdgeInsets.all(
+                ResponsiveUtils.getResponsivePadding(context)),
             child: isMobile
                 ? Column(
                     children: [
                       Text(
                         'Page ${controller.currentPage.value}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style:
+                            TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 12),
                       if (controller.hasMoreProducts.value)
@@ -788,7 +751,6 @@ class ProductsView extends GetView<ProductsController> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange[700],
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           ),
                           child: controller.isLoading.value
                               ? const SizedBox(
@@ -817,10 +779,8 @@ class ProductsView extends GetView<ProductsController> {
                     children: [
                       Text(
                         'Page ${controller.currentPage.value}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style:
+                            TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(width: 20),
                       if (controller.hasMoreProducts.value)
@@ -831,7 +791,6 @@ class ProductsView extends GetView<ProductsController> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange[700],
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           ),
                           child: controller.isLoading.value
                               ? const SizedBox(

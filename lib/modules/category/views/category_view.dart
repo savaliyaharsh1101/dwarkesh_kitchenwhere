@@ -519,65 +519,71 @@ class CategoryView extends GetView<CategoryController> {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    Text(
-                      product.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: ResponsiveUtils.isMobile(Get.context!) ? 12 : 14,
+                    Flexible(
+                      child: Text(
+                        product.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: ResponsiveUtils.isMobile(Get.context!) ? 11 : 12,
+                          height: 1.1,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       product.brand,
                       style: TextStyle(
                         color: Colors.grey[600],
-                        fontSize: ResponsiveUtils.isMobile(Get.context!) ? 10 : 12,
+                        fontSize: ResponsiveUtils.isMobile(Get.context!) ? 9 : 10,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
                     Row(
                       children: [
                         if (product.originalPrice != null) ...[
-                          Text(
-                            '₹${product.originalPrice!.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              decoration: TextDecoration.lineThrough,
-                              color: Colors.grey,
-                              fontSize: 12,
+                          Flexible(
+                            child: Text(
+                              '₹${product.originalPrice!.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                decoration: TextDecoration.lineThrough,
+                                color: Colors.grey,
+                                fontSize: 10,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 3),
                         ],
-                        Text(
-                          '₹${product.price.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange,
-                            fontSize: ResponsiveUtils.isMobile(Get.context!) ? 12 : 14,
+                        Flexible(
+                          child: Text(
+                            '₹${product.price.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                              fontSize: ResponsiveUtils.isMobile(Get.context!) ? 11 : 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (product.discountPercentage > 0) ...[
-                          const SizedBox(width: 5),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            decoration: BoxDecoration(
+                          const SizedBox(width: 3),
+                          Text(
+                            '${product.discountPercentage}% OFF',
+                            style: const TextStyle(
                               color: Colors.red,
-                              borderRadius: BorderRadius.circular(4),
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
                             ),
-                            child: Text(
-                              '${product.discountPercentage}% OFF',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            maxLines: 1,
                           ),
                         ],
                       ],
